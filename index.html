@@ -1,0 +1,792 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>A1 Tam Liste ve Sınıf Dili</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: başvuru defteri. Üstte 6 kategorilik harita (önerilen öğrenme sırası), yapışkan kategori şeridi, her kategoride alt başlık çipleri ve kartlar */
+:root{
+  --bg:#f3f5f9; --paper:#ffffff; --ink:#1b2233; --muted:#5b6478; --line:#d8dde8;
+  --blue:#2d4a8a; --blue-soft:#e6ecf8; --mustard:#a8760c; --mustard-soft:#fbf1d6; --ok:#2f7d4f;
+  --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --body:"Source Sans 3",ui-sans-serif,system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12161f; --paper:#1a2030; --ink:#e7ebf3; --muted:#9aa3b8; --line:#2c3447;
+  --blue:#8fb0f0; --blue-soft:#222c44; --mustard:#f0bf4f; --mustard-soft:#33291a; --ok:#6cc792; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12161f; --paper:#1a2030; --ink:#e7ebf3; --muted:#9aa3b8; --line:#2c3447;
+  --blue:#8fb0f0; --blue-soft:#222c44; --mustard:#f0bf4f; --mustard-soft:#33291a; --ok:#6cc792; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font:17px/1.5 var(--body)}
+.wrap{max-width:780px;margin:0 auto;padding-inline:16px;padding-block:28px 64px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:2rem}
+h2{font-size:1.55rem}
+h3{font-size:1.02rem;color:var(--blue)}
+p{margin:0}
+.tag{font:500 .72rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.lede{color:var(--muted);margin-top:.6rem;max-width:62ch}
+
+/* Harita */
+.map{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:22px}
+.map a{display:flex;flex-direction:column;gap:4px;text-decoration:none;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.map a:hover{border-color:var(--blue)}
+.map a[aria-current="true"]{border-color:var(--blue);box-shadow:inset 0 0 0 1px var(--blue)}
+.map .n{font:500 .72rem var(--mono);color:var(--mustard);letter-spacing:.06em}
+.map b{font:700 1.1rem var(--display)}
+.map span{font-size:.88rem;color:var(--muted)}
+
+/* Kategori şeridi */
+.strip{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);margin-top:22px;padding-block:10px;border-bottom:1px solid var(--line);display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.strip a{flex:none;font:600 .88rem var(--body);color:var(--blue);text-decoration:none;padding:6px 12px;border-radius:999px;background:var(--blue-soft)}
+.strip a[aria-current="true"]{background:var(--blue);color:var(--paper)}
+a:focus-visible,input:focus-visible{outline:2px solid var(--mustard);outline-offset:2px}
+
+.cat{margin-top:28px;display:flex;flex-direction:column;gap:16px}
+.cathead{display:flex;flex-direction:column;gap:6px}
+.cathead p{color:var(--muted);font-size:.95rem;max-width:62ch}
+.sub{display:flex;flex-wrap:wrap;gap:6px}
+.sub a{font-size:.85rem;color:var(--muted);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:3px 10px}
+.sub a:hover{color:var(--blue);border-color:var(--blue)}
+
+.group{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;scroll-margin-top:64px}
+.ph{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:4px 14px;padding-block:6px;border-top:1px solid var(--line)}
+.ph:first-of-type{border-top:0}
+.ph .en{font-weight:600}
+.ph .tr{color:var(--muted);font-size:.93rem}
+@media (max-width:520px){.ph{grid-template-columns:1fr;gap:0}}
+.star{color:var(--mustard);font:500 .72rem var(--mono);margin-left:4px;vertical-align:middle}
+.small{font-size:.92rem;color:var(--muted)}
+.wrong{color:var(--muted);text-decoration:line-through}
+.hi{background:var(--mustard-soft);border-radius:3px;padding:0 3px}
+.tip{background:var(--mustard-soft);border-radius:12px;padding:14px 16px;font-size:.95rem}
+
+.abc{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:6px}
+.abc div{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:6px 4px;text-align:center;display:flex;flex-direction:column}
+.abc b{font:700 1.3rem/1.1 var(--display)}
+.abc span{font-size:.82rem;color:var(--muted)}
+.abc .hard{background:var(--mustard-soft);border-color:transparent}
+
+.tbl{overflow-x:auto}
+.tbl table{border-collapse:collapse;width:100%;font-size:.94rem;font-variant-numeric:tabular-nums}
+.tbl th,.tbl td{text-align:left;vertical-align:top;padding:6px 8px;border-bottom:1px solid var(--line)}
+.tbl th{font:500 .7rem var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.tbl td:first-child{font-weight:600}
+
+ul.check{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+ul.check label{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:start;padding:6px 0;border-top:1px solid var(--line);cursor:pointer}
+ul.check li:first-child label{border-top:0}
+ul.check input{width:18px;height:18px;margin-top:3px;accent-color:var(--ok)}
+ul.check b{font-weight:600}
+ul.check .ex{display:block;color:var(--muted);font-size:.9rem}
+ul.check input:checked + span b{color:var(--ok)}
+.pill{display:inline-block;font:500 .66rem var(--mono);letter-spacing:.05em;text-transform:uppercase;padding:1px 6px;border-radius:999px;background:var(--mustard-soft);color:var(--mustard);margin-left:6px;vertical-align:2px}
+.prog{font:500 .8rem var(--mono);color:var(--ok)}
+.vocab{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+.vocab .group{gap:4px}
+.vocab p{font-size:.93rem;color:var(--muted)}
+.pairs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
+.pairs span{background:var(--blue-soft);border-radius:8px;padding:6px 10px;font-weight:600;font-size:.95rem;text-align:center}
+.next{display:flex;justify-content:flex-end}
+.thead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.tn{display:inline-grid;place-items:center;min-width:1.6em;height:1.6em;border-radius:6px;background:var(--blue-soft);color:var(--blue);font:500 .78rem var(--mono);margin-right:4px;vertical-align:1px}
+.topic.done{border-color:var(--ok)}
+.topic.done .tn{background:var(--ok);color:var(--paper)}
+.next a{font-weight:600;color:var(--blue);text-decoration:none}
+footer{margin-top:44px;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:.9rem}
+
+/* Kullanılabilirlik katmanı */
+.wrap{max-width:1180px}
+.layout{display:block}
+.main{min-width:0;display:flex;flex-direction:column}
+.side{display:none}
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:6;background:var(--bg);margin-top:18px;padding-block:10px 0;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+.topbar .strip{position:static;margin:0;border:0;padding-block:0 10px}
+.search{position:relative}
+.search input{width:100%;box-sizing:border-box;font:16px var(--body);color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 40px 10px 14px}
+.search input:focus{outline:2px solid var(--blue);outline-offset:0;border-color:transparent}
+.search button{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:32px;height:32px;border:0;border-radius:8px;background:var(--blue-soft);color:var(--blue);font-size:1.1rem;cursor:pointer}
+.qinfo{font-size:.88rem;color:var(--muted);padding-bottom:8px}
+.cat,.group{scroll-margin-top:130px}
+mark.q{background:var(--mustard-soft);color:inherit;border-radius:3px;padding:0 1px}
+.chipbtn{align-self:flex-start;font:600 .88rem var(--body);border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:6px 12px;cursor:pointer}
+.chipbtn[aria-pressed="true"]{background:var(--mustard-soft);border-color:var(--mustard);color:var(--mustard)}
+body.only-star #sinif .ph:not(:has(.star)){display:none}
+body.only-star #sinif .group:not(:has(.star)){display:none}
+.totop{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:7;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--paper);color:var(--blue);font-size:1.2rem;cursor:pointer;box-shadow:0 2px 10px rgb(0 0 0 / .12)}
+body.searching .map,body.searching .cathead .sub,body.searching .next,body.searching .cathead p:not(.tag),body.searching .chipbtn,body.searching .strip{display:none}
+button:focus-visible{outline:2px solid var(--mustard);outline-offset:2px}
+
+/* Telefon: harita kompakt */
+@media (max-width:640px){
+  .map{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .map a{padding:10px 12px}
+  .map a span:not(.n){display:none}
+  .map b{font-size:1rem}
+  .group{padding:12px 14px}
+  .tbl table{font-size:.9rem}
+}
+/* Masaüstü: yan içindekiler */
+@media (min-width:980px){
+  .layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:36px;align-items:start;margin-top:22px}
+  .side{display:flex;flex-direction:column;gap:2px;position:sticky;top:calc(16px + env(safe-area-inset-top,0px));max-height:calc(100vh - 32px);overflow-y:auto;padding-right:4px}
+  .side a{text-decoration:none;color:var(--ink);border-radius:8px;padding:6px 10px;font-size:.95rem}
+  .side a:hover{background:var(--blue-soft)}
+  .side a.c{font:700 1rem var(--display);display:flex;gap:8px;align-items:baseline}
+  .side a.c .n{font:500 .72rem var(--mono);color:var(--mustard)}
+  .side a.c[aria-current="true"]{background:var(--blue);color:var(--paper)}
+  .side a.c[aria-current="true"] .n{color:var(--paper)}
+  .side .subs{display:flex;flex-direction:column;margin:2px 0 8px 18px;border-left:2px solid var(--line)}
+  .side .subs a{font-size:.9rem;color:var(--muted);padding:4px 10px}
+  .side .subs a.on{color:var(--blue);font-weight:600}
+  .side .hint{font-size:.8rem;color:var(--muted);padding:10px 10px 0}
+  .map,.topbar .strip{display:none}
+  .topbar{margin-top:0}
+  .cat{margin-top:20px}
+  .cat,.group{scroll-margin-top:90px}
+  .wrap > .lede{max-width:70ch}
+}
+@media (max-width:480px){h1{font-size:1.65rem}}
+</style>
+
+<div class="wrap">
+  <p class="tag">A1 bitiş · A2 sınıfına hazırlık · başvuru defteri</p>
+  <h1>İngilizce başvuru defterim</h1>
+  <p class="lede">Altı kategori, önerilen öğrenme sırasıyla. Bir kategoriye dokun, alt başlıklarıyla açılır. Aradığın bir şey varsa arama kutusu tüm kategorilerde Türkçe ve İngilizce arar.</p>
+
+  <div class="layout">
+  <aside class="side" id="side" aria-label="İçindekiler"></aside>
+  <main class="main" id="main">
+  <div class="map" id="map">
+    <a href="#temeller" data-cat="temeller"><span class="n">1 · TEMEL</span><b>Temeller</b><span>Alfabe · Sayılar · Günler ve aylar · Saat</span></a>
+    <a href="#telaffuz" data-cat="telaffuz"><span class="n">2 · SES</span><b>Telaffuz</b><span>Zor sesler · Sessiz harfler · -ed / -s · Vurgu · Tonlama · Çalışma yöntemi</span></a>
+    <a href="#sinif" data-cat="sinif"><span class="n">3 · SINIF</span><b>Sınıf dili</b><span>Anlamadığında · Öğrenme soruları · Eşli çalışma · İzin · Öğretmen talimatları</span></a>
+    <a href="#dilbilgisi" data-cat="dilbilgisi"><span class="n">4 · YAPI</span><b>Dilbilgisi</b><span>Türkçeden farklar · Sık hatalar · A1 konuları (15 başlık) · A2'de ne var</span></a>
+    <a href="#kelime" data-cat="kelime"><span class="n">5 · KELİME</span><b>Kelime alanları</b><span>14 konu alanı · UK ve US farkları</span></a>
+    <a href="#kultur" data-cat="kultur"><span class="n">6 · KÜLTÜR</span><b>Konuşma kültürü</b><span>Kibarlık · Small talk · Akış · Hitap</span></a>
+  </div>
+
+  <div class="topbar" id="topbar">
+    <div class="search"><input type="search" id="q" placeholder="Ara: kelime, kalıp, kural…" aria-label="Sayfada ara" autocomplete="off"><button type="button" id="qclear" hidden aria-label="Aramayı temizle">×</button></div>
+    <p class="qinfo" id="qinfo" hidden></p>
+    <nav class="strip" id="strip" aria-label="Kategoriler">
+    <a href="#temeller" data-cat="temeller">1 Temeller</a>
+    <a href="#telaffuz" data-cat="telaffuz">2 Telaffuz</a>
+    <a href="#sinif" data-cat="sinif">3 Sınıf dili</a>
+    <a href="#dilbilgisi" data-cat="dilbilgisi">4 Dilbilgisi</a>
+    <a href="#kelime" data-cat="kelime">5 Kelime</a>
+    <a href="#kultur" data-cat="kultur">6 Kültür</a>
+  </nav>
+  </div>
+
+  <!-- ===== 1 TEMELLER ===== -->
+  <section class="cat" id="temeller">
+    <div class="cathead"><p class="tag">Kategori 1</p><h2>Temeller</h2>
+      <p>İsim hecelemek, telefon söylemek, tarih ve saat vermek. Sınıfta ilk gün hepsi lazım olur.</p>
+      <div class="sub"><a href="#t-alfabe">Alfabe</a><a href="#t-sayi">Sayılar</a><a href="#t-gun">Günler ve aylar</a><a href="#t-saat">Saat</a></div></div>
+
+    <div class="group" id="t-alfabe"><h3>Alfabe (Türkçe okunuşuyla)</h3>
+      <div class="abc">
+        <div class="hard"><b>A</b><span>ey</span></div><div><b>B</b><span>bi</span></div><div><b>C</b><span>si</span></div><div><b>D</b><span>di</span></div>
+        <div class="hard"><b>E</b><span>i</span></div><div><b>F</b><span>ef</span></div><div class="hard"><b>G</b><span>ci</span></div><div class="hard"><b>H</b><span>eyç</span></div>
+        <div class="hard"><b>I</b><span>ay</span></div><div class="hard"><b>J</b><span>cey</span></div><div><b>K</b><span>key</span></div><div><b>L</b><span>el</span></div>
+        <div><b>M</b><span>em</span></div><div><b>N</b><span>en</span></div><div><b>O</b><span>ou</span></div><div><b>P</b><span>pi</span></div>
+        <div class="hard"><b>Q</b><span>kyu</span></div><div class="hard"><b>R</b><span>ar</span></div><div><b>S</b><span>es</span></div><div><b>T</b><span>ti</span></div>
+        <div class="hard"><b>U</b><span>yu</span></div><div><b>V</b><span>vi</span></div><div class="hard"><b>W</b><span>dabılyu</span></div><div><b>X</b><span>eks</span></div>
+        <div class="hard"><b>Y</b><span>vay</span></div><div class="hard"><b>Z</b><span>zed / zi</span></div>
+      </div>
+      <p class="small">Sarı harfler en çok karıştırılanlar: A–E–I üçlüsü, G–J ikilisi ve Y. Hecelerken: "double L" (LL), "capital B" (büyük B), "dot" (.), "at" (@), "dash" (-), "underscore" (_).</p>
+    </div>
+
+    <div class="group" id="t-sayi"><h3>Sayılar</h3>
+      <div class="tbl"><table>
+        <tr><th>Konu</th><th>Kural</th><th>Örnek</th></tr>
+        <tr><td>13–19 / 30–90</td><td>vurgu farkı çok önemli</td><td>thir<b>TEEN</b> (13) · <b>THIR</b>ty (30)</td></tr>
+        <tr><td>Yüzler</td><td>İngiliz İngilizcesinde "and"</td><td>105 = one hundred and five</td></tr>
+        <tr><td>Binler</td><td>binlik virgülle ayrılır</td><td>2,500 = two thousand five hundred</td></tr>
+        <tr><td>Ondalık</td><td>Türkçenin tersi: nokta</td><td>2.5 = two point five</td></tr>
+        <tr><td>Telefon</td><td>tek tek; 0 = "oh"; aynı iki rakam = "double"</td><td>0532 = oh five three two · 55 = double five</td></tr>
+        <tr><td>Fiyat</td><td>birim ortada söylenir</td><td>£4.50 = four pounds fifty</td></tr>
+        <tr><td>Yıl</td><td>ikişer ikişer</td><td>1998 = nineteen ninety-eight · 2026 = twenty twenty-six</td></tr>
+        <tr><td>Sıra sayısı</td><td>1st, 2nd, 3rd, sonra -th</td><td>first, second, third, fifth, twelfth, twentieth, twenty-first</td></tr>
+      </table></div>
+    </div>
+
+    <div class="group" id="t-gun"><h3>Günler ve aylar</h3>
+      <div class="tbl"><table>
+        <tr><td>Günler</td><td>Monday, Tuesday, Wednesday (<i>wenzdey</i>), Thursday, Friday, Saturday, Sunday</td></tr>
+        <tr><td>Aylar</td><td>January, February, March, April, May, June, July, August, September, October, November, December</td></tr>
+        <tr><td>Büyük harf</td><td>Gün ve ay adları hep büyük harfle: on <b>M</b>onday, in <b>J</b>uly</td></tr>
+        <tr><td>Edat</td><td><b>on</b> + gün / tarih · <b>in</b> + ay / yıl / mevsim · <b>at</b> the weekend (UK)</td></tr>
+        <tr><td>Tarih</td><td>UK: 5 May / the fifth of May · US: May 5 / May fifth</td></tr>
+        <tr><td>Dikkat</td><td>05/10 İngiltere'de 5 Ekim, ABD'de 10 Mayıs. Emin değilsen ayı yazıyla yaz.</td></tr>
+        <tr><td>Faydalı</td><td>weekday, weekend, fortnight (UK, iki hafta), the day after tomorrow, the day before yesterday</td></tr>
+      </table></div>
+    </div>
+
+    <div class="group" id="t-saat"><h3>Saat</h3>
+      <div class="tbl"><table>
+        <tr><th>Saat</th><th>Klasik</th><th>Dijital (daha kolay)</th></tr>
+        <tr><td>7:00</td><td>seven o'clock</td><td>seven</td></tr>
+        <tr><td>7:05</td><td>five past seven</td><td>seven oh five</td></tr>
+        <tr><td>7:15</td><td>(a) quarter past seven</td><td>seven fifteen</td></tr>
+        <tr><td>7:30</td><td>half past seven</td><td>seven thirty</td></tr>
+        <tr><td>7:45</td><td>(a) quarter to eight</td><td>seven forty-five</td></tr>
+        <tr><td>7:50</td><td>ten to eight</td><td>seven fifty</td></tr>
+      </table></div>
+      <p class="small">30'a kadar <b>past</b> (geçiyor), 30'dan sonra sonraki saate <b>to</b> (var). Konuşmada 24 saat yerine <b>am</b> (gece yarısı–öğle) ve <b>pm</b> (öğle–gece yarısı): 7 pm = 19:00. 12:00 = noon, 00:00 = midnight. Sormak için: "What time is it?" ya da daha kibar "Excuse me, have you got the time?" Günlük İngiliz konuşmasında "half seven" = 7:30, Türkçedeki "yedi buçuk" gibi.</p>
+    </div>
+    <div class="next"><a href="#telaffuz" data-cat="telaffuz">Sonraki: Telaffuz →</a></div>
+  </section>
+
+  <!-- ===== 2 TELAFFUZ ===== -->
+  <section class="cat" id="telaffuz">
+    <div class="cathead"><p class="tag">Kategori 2</p><h2>Telaffuz</h2>
+      <p>Türkçe yazıldığı gibi okunur, İngilizce okunmaz. Anlaşılır olmak için önce Türkçede olmayan sesleri, sonra vurgu ve ritmi çalış.</p>
+      <div class="sub"><a href="#p-ses">Zor sesler</a><a href="#p-cift">Ses çiftleri</a><a href="#p-sessiz">Sessiz harfler</a><a href="#p-ek">-ed ve -s</a><a href="#p-yazim">Yazım ipuçları</a><a href="#p-vurgu">Vurgu ve ritim</a><a href="#p-ton">Tonlama</a><a href="#p-yontem">Çalışma yöntemi</a></div></div>
+
+    <div class="group" id="p-ses"><h3>Türkçede olmayan sesler</h3>
+      <div class="tbl"><table>
+        <tr><th>Ses</th><th>Nasıl yapılır</th><th>Örnek</th></tr>
+        <tr><td>th (sert)</td><td>Dilin ucu dişlerin arasında, hafifçe üfle. "t" ya da "s" değil.</td><td>think, three, Thursday, month</td></tr>
+        <tr><td>th (yumuşak)</td><td>Aynı pozisyon, boğaz titrer. "d" ya da "z" değil.</td><td>this, the, mother, weather</td></tr>
+        <tr><td>w</td><td>Dudakları "u" gibi yuvarla, dişler dudağa değmez.</td><td>water, what, window, twenty</td></tr>
+        <tr><td>v</td><td>Üst dişler alt dudağa değer.</td><td>very, seven, village</td></tr>
+        <tr><td>a (cat)</td><td>"a" ile "e" arası, ağız yanlara açık.</td><td>cat, bad, man, happy</td></tr>
+        <tr><td>a (cup)</td><td>Kısa, gevşek "a".</td><td>cup, but, love, Monday</td></tr>
+        <tr><td>ı (schwa)</td><td>Vurgusuz hecede silik "ı". İngilizcenin en sık sesi.</td><td>about (<i>ıbaut</i>), teacher (<i>tiçır</i>), banana (<i>bınanı</i>)</td></tr>
+        <tr><td>ng</td><td>Genizden; sondaki "g" duyulmaz.</td><td>sing (<i>siŋ</i>, "sing-g" değil), morning</td></tr>
+        <tr><td>r</td><td>Türkçedeki gibi titretilmez. İngiliz İngilizcesinde ünlüden sonra hiç okunmaz.</td><td>car (UK <i>kaa</i>), teacher (UK <i>tiiça</i>)</td></tr>
+        <tr><td>h</td><td>Başta okunur; birkaç kelimede sessiz.</td><td>house, hello · hour, honest (h yok)</td></tr>
+      </table></div>
+    </div>
+
+    <div class="group" id="p-cift"><h3>Ses çiftleri (minimal pairs): farkı duy, sonra söyle</h3>
+      <div class="pairs">
+        <span>ship · sheep</span><span>live · leave</span><span>full · fool</span><span>bad · bed</span>
+        <span>man · men</span><span>cap · cup</span><span>west · vest</span><span>wine · vine</span>
+        <span>think · sink</span><span>three · tree</span><span>they · day</span><span>thirteen · thirty</span>
+      </div>
+      <p class="small">Kısa ünlü (ship, live, full) gevşek ve kısa; uzun ünlü (sheep, leave, fool) gergin ve uzun söylenir. Anlamı tamamen değiştirir.</p>
+    </div>
+
+    <div class="group" id="p-sessiz"><h3>Yazılıp okunmayan harfler</h3>
+      <div class="tbl"><table>
+        <tr><td>kn → k okunmaz</td><td>know, knife, knee</td></tr>
+        <tr><td>wr → w okunmaz</td><td>write, wrong, wrist</td></tr>
+        <tr><td>mb → b okunmaz</td><td>climb, comb, thumb</td></tr>
+        <tr><td>alk → l okunmaz</td><td>walk, talk, half, could, should</td></tr>
+        <tr><td>gh → çoğu zaman okunmaz</td><td>night, daughter, eight (ama laugh, enough = f)</td></tr>
+        <tr><td>stle / sten → t okunmaz</td><td>listen, castle, Christmas</td></tr>
+        <tr><td>Wednesday</td><td>ilk "d" okunmaz: <i>wenzdey</i></td></tr>
+      </table></div>
+    </div>
+
+    <div class="group" id="p-ek"><h3>-ed ve -s sonlarının okunuşu</h3>
+      <div class="tbl"><table>
+        <tr><th>Ek</th><th>Okunuş</th><th>Ne zaman</th><th>Örnek</th></tr>
+        <tr><td>-ed</td><td>/t/</td><td>p, k, s, ş, ç, f sesinden sonra</td><td>worked (<i>vörkt</i>), stopped, watched</td></tr>
+        <tr><td>-ed</td><td>/d/</td><td>diğer ses ve ünlülerden sonra</td><td>played (<i>pleyd</i>), lived, called</td></tr>
+        <tr><td>-ed</td><td>/ıd/</td><td>yalnızca t veya d ile bitende</td><td>wanted (<i>vontıd</i>), needed, visited</td></tr>
+        <tr><td>-s</td><td>/s/</td><td>p, t, k, f'den sonra</td><td>cats, books, stops</td></tr>
+        <tr><td>-s</td><td>/z/</td><td>diğerlerinden sonra</td><td>dogs, plays, lives</td></tr>
+        <tr><td>-s</td><td>/ız/</td><td>s, z, ş, ç, c sesinden sonra</td><td>buses, watches, pages</td></tr>
+      </table></div>
+      <p class="small">En sık hata: her -ed'yi hece olarak okumak. <span class="wrong">work-ed</span> değil "workt". Past Simple'da bu hata çok duyulur.</p>
+    </div>
+
+    <div class="group" id="p-yazim"><h3>Yazımdan okunuşu tahmin etmek</h3>
+      <div class="tbl"><table>
+        <tr><td>ee, ea → uzun "i"</td><td>see, meet, eat, teacher</td></tr>
+        <tr><td>oo → uzun "u" / kısa "u"</td><td>food, school · book, good</td></tr>
+        <tr><td>Sessiz "e" kuralı</td><td>sondaki e okunmaz ama önceki ünlüyü "adıyla" okutur: cap/cape (kep/keyp), bit/bite, hop/hope</td></tr>
+        <tr><td>igh → "ay"</td><td>night, light, high</td></tr>
+        <tr><td>tion → "şın"</td><td>information, station</td></tr>
+        <tr><td>ph → f · sh → ş · ch → ç</td><td>phone · shop · chair (bazen k: school, Christmas)</td></tr>
+        <tr><td>ou, ow → "au"</td><td>house, now, town (ama know, show = "ou")</td></tr>
+      </table></div>
+    </div>
+
+    <div class="group" id="p-vurgu"><h3>Kelime vurgusu ve cümle ritmi</h3>
+      <div class="tbl"><table>
+        <tr><td>İki heceli isim / sıfat</td><td>genelde ilk hece: <b>TEA</b>cher, <b>HAP</b>py, <b>TA</b>ble</td></tr>
+        <tr><td>İki heceli fiil</td><td>genelde ikinci hece: be<b>GIN</b>, re<b>LAX</b>, de<b>CIDE</b></td></tr>
+        <tr><td>-tion, -sion, -ic</td><td>hemen önceki hece: infor<b>MA</b>tion, <b>TEL</b>evision, fan<b>TAS</b>tic</td></tr>
+        <tr><td>Cümle ritmi</td><td>anlam taşıyan kelimeler vurgulu, küçük kelimeler zayıf: I <b>WANT</b> to <b>GO</b> <b>HOME</b>.</td></tr>
+        <tr><td>Zayıf biçimler</td><td>to → <i>tı</i>, and → <i>ın</i>, for → <i>fır</i>, can → <i>kın</i> · ama can't vurgulu: <i>kaant</i></td></tr>
+        <tr><td>Bağlama</td><td>sessiz + ünlü birleşir: an apple → <i>ı-nepıl</i>, turn off → <i>tör-nof</i>, Did you → <i>dicu</i></td></tr>
+      </table></div>
+      <p class="small">Neden önemli: hızlı konuşmayı anlamamanın ana nedeni bağlama ve zayıf biçimler. "Wha-dya-wanna-do?" = What do you want to do?</p>
+    </div>
+
+    <div class="group" id="p-ton"><h3>Tonlama</h3>
+      <div class="tbl"><table>
+        <tr><td>Wh- soruları ↘</td><td>ses sonda düşer: Where do you live? ↘</td></tr>
+        <tr><td>Evet/hayır soruları ↗</td><td>ses sonda yükselir: Do you like it? ↗</td></tr>
+        <tr><td>Listeler ↗ ↗ ↘</td><td>apples ↗, oranges ↗ and bananas ↘</td></tr>
+        <tr><td>Kibarlık</td><td>düz, tek tonlu konuşma ilgisiz ya da kaba duyulabilir; "Thank you" ve "Sorry" canlı söylenir</td></tr>
+      </table></div>
+    </div>
+
+    <div class="group" id="p-yontem"><h3>Nasıl çalışmalı</h3>
+      <div class="ph"><span class="en">Gölge okuma (shadowing)</span><span class="tr">Kısa bir kayıt dinle, bir saniye geriden aynı ritimle tekrarla. Günde 5 dakika yeter.</span></div>
+      <div class="ph"><span class="en">Kendini kaydet</span><span class="tr">Diyaloğu telefona oku, orijinalle karşılaştır. Farkı kulağınla duyarsın.</span></div>
+      <div class="ph"><span class="en">Sözlükte dinle</span><span class="tr">Cambridge Dictionary gibi sözlüklerde her kelimenin UK ve US sesi var. Yeni kelimeyi okumadan önce dinle.</span></div>
+      <div class="ph"><span class="en">Vurguyu işaretle</span><span class="tr">Defterine yeni kelimeyi yazarken vurgulu heceyi büyük harfle yaz: comPUter.</span></div>
+      <div class="ph"><span class="en">Sınıfta sor</span><span class="tr">"How do you pronounce this?" · "Where's the stress?" (Vurgu nerede?) · "Can you say it slowly?"</span></div>
+    </div>
+    <div class="next"><a href="#sinif" data-cat="sinif">Sonraki: Sınıf dili →</a></div>
+  </section>
+
+  <!-- ===== 3 SINIF DİLİ ===== -->
+  <section class="cat" id="sinif">
+    <div class="cathead"><p class="tag">Kategori 3</p><h2>Sınıf dili</h2>
+      <p>Türkçeye kaçmadan derste kalmanı sağlayan cümleler. <span class="star">★</span> işaretliler ilk haftanın zorunluları.</p>
+      <button type="button" class="chipbtn" id="starBtn" aria-pressed="false">★ Sadece yıldızlıları göster</button>
+      <div class="sub"><a href="#s-anlama">Anlamadığında</a><a href="#s-kelime">Kelime sorarken</a><a href="#s-derin">Öğrenme soruları</a><a href="#s-cevap">Cevap verirken</a><a href="#s-esli">Eşli çalışma</a><a href="#s-izin">İzin ve rica</a><a href="#s-odev">Ödev ve gecikme</a><a href="#s-ogretmen">Öğretmen talimatları</a></div></div>
+
+    <div class="group" id="s-anlama"><h3>Anlamadığında</h3>
+      <div class="ph"><span class="en">Sorry, I don't understand. <span class="star">★</span></span><span class="tr">Pardon, anlamadım.</span></div>
+      <div class="ph"><span class="en">Could you repeat that, please? <span class="star">★</span></span><span class="tr">Tekrar eder misiniz?</span></div>
+      <div class="ph"><span class="en">Could you speak more slowly, please?</span><span class="tr">Daha yavaş konuşur musunuz?</span></div>
+      <div class="ph"><span class="en">Could you explain it again?</span><span class="tr">Tekrar açıklar mısınız?</span></div>
+      <div class="ph"><span class="en">Sorry, what page are we on?</span><span class="tr">Pardon, hangi sayfadayız?</span></div>
+    </div>
+
+    <div class="group" id="s-kelime"><h3>Kelime ve telaffuz sorarken</h3>
+      <div class="ph"><span class="en">What does "…" mean? <span class="star">★</span></span><span class="tr">"…" ne demek?</span></div>
+      <div class="ph"><span class="en">How do you say "…" in English? <span class="star">★</span></span><span class="tr">"…" İngilizcede nasıl denir?</span></div>
+      <div class="ph"><span class="en">How do you spell it?</span><span class="tr">Nasıl yazılıyor?</span></div>
+      <div class="ph"><span class="en">How do you pronounce this word?</span><span class="tr">Bu kelime nasıl okunuyor?</span></div>
+      <div class="ph"><span class="en">Where's the stress?</span><span class="tr">Vurgu nerede?</span></div>
+      <div class="ph"><span class="en">What's the difference between … and …?</span><span class="tr">… ile … arasındaki fark ne?</span></div>
+      <div class="ph"><span class="en">Can you write it on the board, please?</span><span class="tr">Tahtaya yazabilir misiniz?</span></div>
+    </div>
+
+    <div class="group" id="s-derin"><h3>Öğrenmeyi derinleştiren sorular</h3>
+      <div class="ph"><span class="en">What does this verb mean? Can you say it simply? <span class="star">★</span></span><span class="tr">Bu fiil ne demek? Basitçe söyler misiniz?</span></div>
+      <div class="ph"><span class="en">Can you explain it in simple words?</span><span class="tr">Basit kelimelerle açıklar mısınız?</span></div>
+      <div class="ph"><span class="en">Which topic is this? I want to take notes. <span class="star">★</span></span><span class="tr">Bu hangi konu? Not almak istiyorum.</span></div>
+      <div class="ph"><span class="en">What's the name of this grammar point?</span><span class="tr">Bu dilbilgisi konusunun adı ne?</span></div>
+      <div class="ph"><span class="en">Is it in the book? Which page?</span><span class="tr">Kitapta var mı? Hangi sayfada?</span></div>
+      <div class="ph"><span class="en">Can you say it in a different way? <span class="star">★</span></span><span class="tr">Bunu farklı şekilde söyler misiniz?</span></div>
+      <div class="ph"><span class="en">Could you give some more examples, please? <span class="star">★</span></span><span class="tr">Biraz daha örnek verir misiniz?</span></div>
+      <div class="ph"><span class="en">Can you use it in a sentence?</span><span class="tr">Bunu bir cümlede kullanır mısınız?</span></div>
+      <div class="ph"><span class="en">Can I try an example? Is this right?</span><span class="tr">Ben bir örnek deneyebilir miyim? Doğru mu?</span></div>
+      <div class="ph"><span class="en">Can I say "…" instead?</span><span class="tr">Onun yerine "…" diyebilir miyim?</span></div>
+      <div class="ph"><span class="en">Why is it "…" and not "…"?</span><span class="tr">Neden "…" da "…" değil?</span></div>
+      <div class="ph"><span class="en">When do we use this?</span><span class="tr">Bunu ne zaman kullanıyoruz?</span></div>
+      <div class="ph"><span class="en">Which tense is this?</span><span class="tr">Bu hangi zaman?</span></div>
+      <div class="ph"><span class="en">What's the base form of "went"?</span><span class="tr">"Went"in yalın hali ne?</span></div>
+      <div class="ph"><span class="en">Is there a similar word? / What's the opposite?</span><span class="tr">Benzer bir kelime var mı? / Zıttı ne?</span></div>
+      <div class="ph"><span class="en">Is it formal or informal?</span><span class="tr">Resmi mi, günlük mü?</span></div>
+      <div class="ph"><span class="en">Do people use this in everyday English?</span><span class="tr">Günlük hayatta bunu kullanıyorlar mı?</span></div>
+      <div class="ph"><span class="en">Please correct me if I make a mistake.</span><span class="tr">Hata yaparsam lütfen düzeltin.</span></div>
+      <div class="ph"><span class="en">How can I practise this at home?</span><span class="tr">Bunu evde nasıl çalışabilirim?</span></div>
+    </div>
+
+    <div class="group" id="s-cevap"><h3>Cevap verirken ve düşünürken</h3>
+      <div class="ph"><span class="en">Let me think. / Just a moment. <span class="star">★</span></span><span class="tr">Bir düşüneyim. / Bir saniye.</span></div>
+      <div class="ph"><span class="en">I'm not sure, but I think…</span><span class="tr">Emin değilim ama bence…</span></div>
+      <div class="ph"><span class="en">I don't know. / I have no idea.</span><span class="tr">Bilmiyorum. / Hiç fikrim yok.</span></div>
+      <div class="ph"><span class="en">Is this correct? / Is it right?</span><span class="tr">Bu doğru mu?</span></div>
+      <div class="ph"><span class="en">Is it "…" or "…"?</span><span class="tr">"…" mi yoksa "…" mi?</span></div>
+      <div class="ph"><span class="en">I think the answer is B.</span><span class="tr">Bence cevap B.</span></div>
+    </div>
+
+    <div class="group" id="s-esli"><h3>Eşli ve grup çalışmasında</h3>
+      <div class="ph"><span class="en">Can I work with you?</span><span class="tr">Seninle çalışabilir miyim?</span></div>
+      <div class="ph"><span class="en">Shall we start? / Let's start.</span><span class="tr">Başlayalım mı? / Başlayalım.</span></div>
+      <div class="ph"><span class="en">You go first. / It's your turn. <span class="star">★</span></span><span class="tr">Önce sen. / Sıra sende.</span></div>
+      <div class="ph"><span class="en">What's your answer for number 3?</span><span class="tr">3 numaraya ne cevap verdin?</span></div>
+      <div class="ph"><span class="en">I agree. / I don't agree.</span><span class="tr">Katılıyorum. / Katılmıyorum.</span></div>
+      <div class="ph"><span class="en">Me too. / Me neither.</span><span class="tr">Ben de. / Ben de değil.</span></div>
+      <div class="ph"><span class="en">Can you help me with this?</span><span class="tr">Buna yardım eder misin?</span></div>
+      <div class="ph"><span class="en">We've finished. / I'm done.</span><span class="tr">Bitirdik. / Ben bitirdim.</span></div>
+    </div>
+
+    <div class="group" id="s-izin"><h3>İzin ve rica</h3>
+      <div class="ph"><span class="en">Can I go to the toilet, please? <span class="star">★</span></span><span class="tr">Tuvalete gidebilir miyim?</span></div>
+      <div class="ph"><span class="en">May I come in?</span><span class="tr">Girebilir miyim?</span></div>
+      <div class="ph"><span class="en">Can I borrow your pen?</span><span class="tr">Kalemini ödünç alabilir miyim?</span></div>
+      <div class="ph"><span class="en">Can I open / close the window?</span><span class="tr">Pencereyi açabilir / kapatabilir miyim?</span></div>
+      <div class="ph"><span class="en">Can I ask a question?</span><span class="tr">Bir soru sorabilir miyim?</span></div>
+    </div>
+
+    <div class="group" id="s-odev"><h3>Ödev, sınav, gecikme</h3>
+      <div class="ph"><span class="en">Sorry I'm late. <span class="star">★</span></span><span class="tr">Geç kaldığım için özür dilerim.</span></div>
+      <div class="ph"><span class="en">Sorry, I forgot my book / homework.</span><span class="tr">Kitabımı / ödevimi unuttum.</span></div>
+      <div class="ph"><span class="en">I was absent last week. What did we do?</span><span class="tr">Geçen hafta yoktum. Ne yaptık?</span></div>
+      <div class="ph"><span class="en">What's the homework for next week?</span><span class="tr">Gelecek haftanın ödevi ne?</span></div>
+      <div class="ph"><span class="en">When is the exam?</span><span class="tr">Sınav ne zaman?</span></div>
+      <div class="ph"><span class="en">Thank you. See you next week! <span class="star">★</span></span><span class="tr">Teşekkürler. Haftaya görüşürüz!</span></div>
+    </div>
+
+    <div class="group" id="s-ogretmen"><h3>Öğretmenin söyleyecekleri (duyunca anlaman yeterli)</h3>
+      <div class="ph"><span class="en">Open your books at page 24.</span><span class="tr">Kitabı 24. sayfada açın.</span></div>
+      <div class="ph"><span class="en">Turn to page… / Close your books.</span><span class="tr">… sayfaya geçin. / Kitapları kapatın.</span></div>
+      <div class="ph"><span class="en">Look at the board.</span><span class="tr">Tahtaya bakın.</span></div>
+      <div class="ph"><span class="en">Listen and repeat.</span><span class="tr">Dinleyin ve tekrar edin.</span></div>
+      <div class="ph"><span class="en">Read aloud / Read silently.</span><span class="tr">Sesli / sessiz okuyun.</span></div>
+      <div class="ph"><span class="en">Fill in the gaps.</span><span class="tr">Boşlukları doldurun.</span></div>
+      <div class="ph"><span class="en">Match the words with the pictures.</span><span class="tr">Kelimeleri resimlerle eşleştirin.</span></div>
+      <div class="ph"><span class="en">Choose the correct answer.</span><span class="tr">Doğru cevabı seçin.</span></div>
+      <div class="ph"><span class="en">Underline / Circle / Tick the words.</span><span class="tr">Altını çizin / Daire içine alın / İşaretleyin.</span></div>
+      <div class="ph"><span class="en">True or false?</span><span class="tr">Doğru mu yanlış mı?</span></div>
+      <div class="ph"><span class="en">Put the words in the correct order.</span><span class="tr">Kelimeleri doğru sıraya koyun.</span></div>
+      <div class="ph"><span class="en">Work in pairs / in groups of three.</span><span class="tr">İkili / üçlü gruplar halinde çalışın.</span></div>
+      <div class="ph"><span class="en">Take turns. / Swap partners.</span><span class="tr">Sırayla yapın. / Eş değiştirin.</span></div>
+      <div class="ph"><span class="en">Check your answers with your partner.</span><span class="tr">Cevapları eşinizle kontrol edin.</span></div>
+      <div class="ph"><span class="en">Role-play the conversation.</span><span class="tr">Diyaloğu canlandırın.</span></div>
+      <div class="ph"><span class="en">You have five minutes. / Time's up!</span><span class="tr">Beş dakikanız var. / Süre doldu!</span></div>
+      <div class="ph"><span class="en">Any questions? / Is everything clear?</span><span class="tr">Soru var mı? / Her şey anlaşıldı mı?</span></div>
+      <div class="ph"><span class="en">Hand in your homework. / Do exercise 3 for homework.</span><span class="tr">Ödevi teslim edin. / Ödev olarak 3. alıştırmayı yapın.</span></div>
+    </div>
+    <div class="next"><a href="#dilbilgisi" data-cat="dilbilgisi">Sonraki: Dilbilgisi →</a></div>
+  </section>
+
+  <!-- ===== 4 DİLBİLGİSİ ===== -->
+  <section class="cat" id="dilbilgisi">
+    <div class="cathead"><p class="tag">Kategori 4</p><h2>Dilbilgisi</h2>
+      <p>Önce Türkçeden farklı çalışan yerler, sonra sık hatalar, sonra başlık başlık A1 konuları.</p>
+      <div class="sub"><a href="#d-fark">Türkçeden farklar</a><a href="#d-hata">Sık hatalar</a><a href="#d-liste">A1 konuları</a><a href="#d-a2">A2'de ne var</a></div></div>
+
+    <div class="group" id="d-fark"><h3>Türkçeden farklı çalışan yerler</h3>
+      <div class="tbl"><table>
+        <tr><th>Kural</th><th>Türkçe</th><th>İngilizce</th></tr>
+        <tr><td>Söz dizimi</td><td>Özne + nesne + fiil: Ben kitap okurum.</td><td>Özne + fiil + nesne: I read books.</td></tr>
+        <tr><td>Özne zorunlu</td><td>Geliyorum. Yağmur yağıyor.</td><td><b>I</b>'m coming. <b>It</b>'s raining.</td></tr>
+        <tr><td>Ek yerine kelime</td><td>ev<b>de</b>, okul<b>a</b>, arkadaş<b>ım</b></td><td><b>at</b> home, <b>to</b> school, <b>my</b> friend (öne gelir)</td></tr>
+        <tr><td>Cinsiyet</td><td>o</td><td>he / she / it</td></tr>
+        <tr><td>Soru</td><td>sona "mı"</td><td>yardımcı fiil öne: <b>Are</b> you…? <b>Do</b> you…?</td></tr>
+        <tr><td>Olumsuz</td><td>fiile "-me"</td><td>yardımcı fiile not: I <b>don't</b> like</td></tr>
+        <tr><td>Sıfat</td><td>—</td><td>çoğul olmaz: two <b>big</b> houses</td></tr>
+        <tr><td>Büyük harf</td><td>cümle başı, özel isim</td><td>ayrıca I, günler, aylar, diller, milliyetler</td></tr>
+      </table></div>
+    </div>
+
+    <div class="group" id="d-hata"><h3>Türkçe düşünmekten gelen sık hatalar</h3>
+      <div class="ph"><span class="en"><span class="wrong">I am agree.</span> → I agree.</span><span class="tr">agree zaten fiil</span></div>
+      <div class="ph"><span class="en"><span class="wrong">I have 30 years.</span> → I'm 30.</span><span class="tr">yaş "be" ile</span></div>
+      <div class="ph"><span class="en"><span class="wrong">He go to work.</span> → He goes to work.</span><span class="tr">he/she/it ile -s</span></div>
+      <div class="ph"><span class="en"><span class="wrong">Say me.</span> → Tell me.</span><span class="tr">kişiye söylemek = tell</span></div>
+      <div class="ph"><span class="en"><span class="wrong">Open the light.</span> → Turn on the light.</span><span class="tr">ışık, TV: turn on / off</span></div>
+      <div class="ph"><span class="en"><span class="wrong">Make a photo.</span> → Take a photo.</span><span class="tr">fotoğraf çekmek = take</span></div>
+      <div class="ph"><span class="en"><span class="wrong">I am understanding.</span> → I understand.</span><span class="tr">know, understand, like -ing almaz</span></div>
+      <div class="ph"><span class="en"><span class="wrong">People is nice.</span> → People are nice.</span><span class="tr">people çoğul</span></div>
+      <div class="ph"><span class="en"><span class="wrong">informations, advices</span> → information, advice</span><span class="tr">sayılamaz</span></div>
+      <div class="ph"><span class="en"><span class="wrong">I'm going to home.</span> → I'm going home.</span><span class="tr">home ile "to" yok</span></div>
+      <div class="ph"><span class="en"><span class="wrong">Where is he work?</span> → Where does he work?</span><span class="tr">fiil sorusunda do/does</span></div>
+      <div class="ph"><span class="en"><span class="wrong">Did you went?</span> → Did you go?</span><span class="tr">did varsa fiil yalın</span></div>
+    </div>
+
+    <div class="group" id="d-liste"><h3>A1 konuları <span class="prog" id="gprog"></span></h3>
+<p class="small">15 başlık, her birinin altında bilmen gereken maddeler. Bir maddeyi olumlu, olumsuz ve soru halinde örnekle söyleyebiliyorsan işaretle.</p>
+<div class="sub"><a href="#k1">1. to be</a><a href="#k2">2. İsimler ve belirleyiciler</a><a href="#k3">3. Zamirler ve iyelik</a><a href="#k4">4. Present Simple</a><a href="#k5">5. Present Continuous</a><a href="#k6">6. have / have got</a><a href="#k7">7. there is / there are</a><a href="#k8">8. Geçmiş zaman</a><a href="#k9">9. Gelecek ve planlar</a><a href="#k10">10. Modallar ve fiil kalıpları</a><a href="#k11">11. Miktar</a><a href="#k12">12. Edatlar</a><a href="#k13">13. Sıfatlar ve derece</a><a href="#k14">14. Soru kurma</a><a href="#k15">15. Cümle bağlama</a></div></div>
+<div class="group topic" id="k1"><div class="thead"><h3><span class="tn">1</span> to be (am / is / are)</h3><span class="prog tp"></span></div><ul class="check">
+<li><label><input type="checkbox" id="t1_1"><span><b>Olumlu</b><span class="ex">I am · you / we / they are · he / she / it is — I&#x27;m a nurse.</span></span></label></li>
+<li><label><input type="checkbox" id="t1_2"><span><b>Olumsuz</b><span class="ex">isn&#x27;t / aren&#x27;t — They aren&#x27;t at home.</span></span></label></li>
+<li><label><input type="checkbox" id="t1_3"><span><b>Soru ve kısa cevap</b><span class="ex">Are you tired? Yes, I am. / No, I&#x27;m not.</span></span></label></li>
+<li><label><input type="checkbox" id="t1_4"><span><b>Kullanım alanları</b><span class="ex">yaş, meslek, uyruk, yer, duygu — I&#x27;m 30. She&#x27;s from Izmir. We&#x27;re hungry.</span></span></label></li>
+<li><label><input type="checkbox" id="t1_5"><span><b>Kısaltmalar</b><span class="ex">I&#x27;m, you&#x27;re, he&#x27;s, it&#x27;s (dikkat: it&#x27;s = it is · its = onun)</span></span></label></li>
+</ul></div>
+<div class="group topic" id="k2"><div class="thead"><h3><span class="tn">2</span> İsimler ve belirleyiciler</h3><span class="prog tp"></span></div><ul class="check">
+<li><label><input type="checkbox" id="t2_1"><span><b>a / an</b><span class="ex">ünlü SESİNE göre: an apple, an hour · a university, a car</span></span></label></li>
+<li><label><input type="checkbox" id="t2_2"><span><b>the</b><span class="ex">bilinen ya da tek olan: the door, the sun, the teacher</span></span></label></li>
+<li><label><input type="checkbox" id="t2_3"><span><b>Tanımlıksız genel çoğul</b><span class="ex">I like cats. Doctors work hard.</span></span></label></li>
+<li><label><input type="checkbox" id="t2_4"><span><b>Düzenli çoğul</b><span class="ex">-s: books · -es: boxes, watches · -ies: city → cities</span></span></label></li>
+<li><label><input type="checkbox" id="t2_5"><span><b>Düzensiz çoğul</b><span class="ex">man–men, woman–women, child–children, person–people, foot–feet, tooth–teeth</span></span></label></li>
+<li><label><input type="checkbox" id="t2_6"><span><b>this / that / these / those</b><span class="ex">yakın tekil / uzak tekil / yakın çoğul / uzak çoğul</span></span></label></li>
+</ul></div>
+<div class="group topic" id="k3"><div class="thead"><h3><span class="tn">3</span> Zamirler ve iyelik</h3><span class="prog tp"></span></div><ul class="check">
+<li><label><input type="checkbox" id="t3_1"><span><b>Özne zamirleri</b><span class="ex">I, you, he, she, it, we, they</span></span></label></li>
+<li><label><input type="checkbox" id="t3_2"><span><b>Nesne zamirleri</b><span class="ex">me, you, him, her, it, us, them — Call me. I know her.</span></span></label></li>
+<li><label><input type="checkbox" id="t3_3"><span><b>İyelik sıfatları</b><span class="ex">my, your, his, her, its, our, their — my book, their house</span></span></label></li>
+<li><label><input type="checkbox" id="t3_4"><span><b>İyelik zamirleri</b><span class="ex">mine, yours, his, hers, ours, theirs — It&#x27;s mine. (A1/A2)</span></span></label></li>
+<li><label><input type="checkbox" id="t3_5"><span><b>İyelik &#x27;s</b><span class="ex">Ali&#x27;s car · my parents&#x27; house (çoğulda kesme sonda)</span></span></label></li>
+<li><label><input type="checkbox" id="t3_6"><span><b>Whose…?</b><span class="ex">Whose phone is this? It&#x27;s Ayşe&#x27;s.</span></span></label></li>
+</ul></div>
+<div class="group topic" id="k4"><div class="thead"><h3><span class="tn">4</span> Present Simple (geniş zaman)</h3><span class="prog tp"></span></div><ul class="check">
+<li><label><input type="checkbox" id="t4_1"><span><b>Olumlu ve he / she / it -s</b><span class="ex">works, watches, studies · düzensiz: has, goes, does</span></span></label></li>
+<li><label><input type="checkbox" id="t4_2"><span><b>Olumsuz</b><span class="ex">don&#x27;t / doesn&#x27;t + yalın fiil — She doesn&#x27;t drink coffee.</span></span></label></li>
+<li><label><input type="checkbox" id="t4_3"><span><b>Evet / hayır sorusu</b><span class="ex">Do you…? Does he…? — Yes, he does. / No, he doesn&#x27;t.</span></span></label></li>
+<li><label><input type="checkbox" id="t4_4"><span><b>Wh- sorusu</b><span class="ex">What time do you get up? Where does she work?</span></span></label></li>
+<li><label><input type="checkbox" id="t4_5"><span><b>Kullanım</b><span class="ex">alışkanlık, genel gerçek, sabit program — The bus leaves at 8.</span></span></label></li>
+<li><label><input type="checkbox" id="t4_6"><span><b>Sıklık zarfları ve yeri</b><span class="ex">always, usually, often, sometimes, never · be&#x27;den sonra, fiilden önce: I&#x27;m always late. I always walk.</span></span></label></li>
+<li><label><input type="checkbox" id="t4_7"><span><b>Zaman ifadeleri</b><span class="ex">every day, on Mondays, once a week, twice a month</span></span></label></li>
+</ul></div>
+<div class="group topic" id="k5"><div class="thead"><h3><span class="tn">5</span> Present Continuous (şimdiki zaman)</h3><span class="prog tp"></span></div><ul class="check">
+<li><label><input type="checkbox" id="t5_1"><span><b>Yapı</b><span class="ex">am / is / are + fiil-ing — I&#x27;m reading.</span></span></label></li>
+<li><label><input type="checkbox" id="t5_2"><span><b>-ing yazımı</b><span class="ex">make → making · run → running · lie → lying</span></span></label></li>
+<li><label><input type="checkbox" id="t5_3"><span><b>Olumsuz ve soru</b><span class="ex">He isn&#x27;t working. Are you listening?</span></span></label></li>
+<li><label><input type="checkbox" id="t5_4"><span><b>Kullanım</b><span class="ex">şu an ve geçici durum: now, at the moment, today, this week</span></span></label></li>
+<li><label><input type="checkbox" id="t5_5"><span><b>-ing almayan fiiller</b><span class="ex">know, like, want, need, understand, believe</span></span></label></li>
+<li><label><input type="checkbox" id="t5_6"><span><b>Simple ile farkı</b><span class="ex">I usually drive, but today I&#x27;m walking.</span></span></label></li>
+</ul></div>
+<div class="group topic" id="k6"><div class="thead"><h3><span class="tn">6</span> have / have got</h3><span class="prog tp"></span></div><ul class="check">
+<li><label><input type="checkbox" id="t6_1"><span><b>have</b><span class="ex">I have · he has — I have two sisters.</span></span></label></li>
+<li><label><input type="checkbox" id="t6_2"><span><b>have got (İngiliz)</b><span class="ex">I&#x27;ve got · he&#x27;s got — She&#x27;s got blue eyes.</span></span></label></li>
+<li><label><input type="checkbox" id="t6_3"><span><b>Soru ve olumsuz</b><span class="ex">Do you have…? I don&#x27;t have… / Have you got…? I haven&#x27;t got…</span></span></label></li>
+<li><label><input type="checkbox" id="t6_4"><span><b>have ile eylemler</b><span class="ex">have breakfast, have a shower, have a good time (bunlar -ing alabilir)</span></span></label></li>
+</ul></div>
+<div class="group topic" id="k7"><div class="thead"><h3><span class="tn">7</span> there is / there are</h3><span class="prog tp"></span></div><ul class="check">
+<li><label><input type="checkbox" id="t7_1"><span><b>Olumlu</b><span class="ex">There&#x27;s a park. There are some shops.</span></span></label></li>
+<li><label><input type="checkbox" id="t7_2"><span><b>Olumsuz</b><span class="ex">There isn&#x27;t a bank. There aren&#x27;t any cafés.</span></span></label></li>
+<li><label><input type="checkbox" id="t7_3"><span><b>Soru</b><span class="ex">Is there a lift? Are there any toilets?</span></span></label></li>
+<li><label><input type="checkbox" id="t7_4"><span><b>Geçmiş hali</b><span class="ex">There was a party. There were many people.</span></span></label></li>
+</ul></div>
+<div class="group topic" id="k8"><div class="thead"><h3><span class="tn">8</span> Geçmiş zaman</h3><span class="prog tp"></span></div><ul class="check">
+<li><label><input type="checkbox" id="t8_1"><span><b>was / were</b><span class="ex">I / he was · you / we / they were · wasn&#x27;t / weren&#x27;t · Were you…?</span></span></label></li>
+<li><label><input type="checkbox" id="t8_2"><span><b>Past Simple düzenli -ed</b><span class="ex">worked · yazım: live → lived, stop → stopped, study → studied</span></span></label></li>
+<li><label><input type="checkbox" id="t8_3"><span><b>Düzensiz fiiller (ilk 20)</b><span class="ex">go-went, have-had, do-did, see-saw, eat-ate, buy-bought, make-made, get-got, take-took, meet-met, come-came, say-said, give-gave, find-found, think-thought, leave-left, write-wrote, read-read, sleep-slept, drink-drank</span></span></label></li>
+<li><label><input type="checkbox" id="t8_4"><span><b>Olumsuz</b><span class="ex">didn&#x27;t + yalın fiil — I didn&#x27;t see him.</span></span></label></li>
+<li><label><input type="checkbox" id="t8_5"><span><b>Soru</b><span class="ex">Did you go? · Where did you go? (did varsa fiil yalın)</span></span></label></li>
+<li><label><input type="checkbox" id="t8_6"><span><b>Zaman ifadeleri</b><span class="ex">yesterday, last night / week / year, two days ago, in 2020</span></span></label></li>
+</ul></div>
+<div class="group topic" id="k9"><div class="thead"><h3><span class="tn">9</span> Gelecek ve planlar</h3><span class="prog tp"></span></div><ul class="check">
+<li><label><input type="checkbox" id="t9_1"><span><b>be going to</b><span class="ex">plan ve niyet — I&#x27;m going to visit my aunt.</span></span></label></li>
+<li><label><input type="checkbox" id="t9_2"><span><b>Şimdiki zamanla randevu</b><span class="ex">I&#x27;m meeting Ali tomorrow. (A1/A2)</span></span></label></li>
+<li><label><input type="checkbox" id="t9_3"><span><b>Zaman ifadeleri</b><span class="ex">tomorrow, tonight, next week, this weekend, in two days</span></span></label></li>
+</ul></div>
+<div class="group topic" id="k10"><div class="thead"><h3><span class="tn">10</span> Modallar ve fiil kalıpları</h3><span class="prog tp"></span></div><ul class="check">
+<li><label><input type="checkbox" id="t10_1"><span><b>can: yetenek</b><span class="ex">I can swim. She can&#x27;t drive.</span></span></label></li>
+<li><label><input type="checkbox" id="t10_2"><span><b>can / could: izin ve rica</b><span class="ex">Can I sit here? Could you help me?</span></span></label></li>
+<li><label><input type="checkbox" id="t10_3"><span><b>would like</b><span class="ex">+ isim: I&#x27;d like a tea. · + to: I&#x27;d like to go.</span></span></label></li>
+<li><label><input type="checkbox" id="t10_4"><span><b>Let&#x27;s</b><span class="ex">Let&#x27;s + yalın fiil — Let&#x27;s go!</span></span></label></li>
+<li><label><input type="checkbox" id="t10_5"><span><b>like / love / hate + -ing</b><span class="ex">I love cooking. He hates getting up early.</span></span></label></li>
+<li><label><input type="checkbox" id="t10_6"><span><b>want / need + to</b><span class="ex">I want to learn. You need to rest.</span></span></label></li>
+</ul></div>
+<div class="group topic" id="k11"><div class="thead"><h3><span class="tn">11</span> Miktar</h3><span class="prog tp"></span></div><ul class="check">
+<li><label><input type="checkbox" id="t11_1"><span><b>Sayılabilen / sayılamayan</b><span class="ex">an apple, two apples · water, money, bread, information</span></span></label></li>
+<li><label><input type="checkbox" id="t11_2"><span><b>some / any</b><span class="ex">olumluda some, soru ve olumsuzda any; ikramda some: Would you like some tea?</span></span></label></li>
+<li><label><input type="checkbox" id="t11_3"><span><b>much / many / a lot of</b><span class="ex">many friends · much time (olumsuz/soruda) · a lot of her ikisinde</span></span></label></li>
+<li><label><input type="checkbox" id="t11_4"><span><b>How much / How many</b><span class="ex">How much is it? How many brothers have you got?</span></span></label></li>
+<li><label><input type="checkbox" id="t11_5"><span><b>Ölçü kalıpları</b><span class="ex">a bottle of water, a cup of coffee, a kilo of apples, a piece of cake</span></span></label></li>
+</ul></div>
+<div class="group topic" id="k12"><div class="thead"><h3><span class="tn">12</span> Edatlar</h3><span class="prog tp"></span></div><ul class="check">
+<li><label><input type="checkbox" id="t12_1"><span><b>Zaman: at / on / in</b><span class="ex">at 5 o&#x27;clock, at night · on Monday, on 5 May · in June, in 2026, in the morning</span></span></label></li>
+<li><label><input type="checkbox" id="t12_2"><span><b>Yer</b><span class="ex">in, on, under, next to, between, opposite, behind, in front of, near</span></span></label></li>
+<li><label><input type="checkbox" id="t12_3"><span><b>Hareket</b><span class="ex">to, from, into, out of — I go to work. She&#x27;s from Ankara.</span></span></label></li>
+<li><label><input type="checkbox" id="t12_4"><span><b>Sabit kalıplar</b><span class="ex">at home, at work, at school, in bed, on the bus, by car, on foot</span></span></label></li>
+</ul></div>
+<div class="group topic" id="k13"><div class="thead"><h3><span class="tn">13</span> Sıfatlar ve derece</h3><span class="prog tp"></span></div><ul class="check">
+<li><label><input type="checkbox" id="t13_1"><span><b>Sıfatın yeri</b><span class="ex">isimden önce, çoğul olmaz: a big house, two big houses</span></span></label></li>
+<li><label><input type="checkbox" id="t13_2"><span><b>be + sıfat</b><span class="ex">The house is big. I&#x27;m tired.</span></span></label></li>
+<li><label><input type="checkbox" id="t13_3"><span><b>Derece zarfları</b><span class="ex">very, really, quite, too — It&#x27;s very cold. It&#x27;s too expensive.</span></span></label></li>
+<li><label><input type="checkbox" id="t13_4"><span><b>Zıt çiftler</b><span class="ex">big–small, old–new / young, cheap–expensive, easy–difficult, hot–cold</span></span></label></li>
+</ul></div>
+<div class="group topic" id="k14"><div class="thead"><h3><span class="tn">14</span> Soru kurma</h3><span class="prog tp"></span></div><ul class="check">
+<li><label><input type="checkbox" id="t14_1"><span><b>Soru kelimeleri</b><span class="ex">What, Where, When, Who, Why, Which, How</span></span></label></li>
+<li><label><input type="checkbox" id="t14_2"><span><b>How + kelime</b><span class="ex">How old, How much, How many, How often, How long, How far</span></span></label></li>
+<li><label><input type="checkbox" id="t14_3"><span><b>Yardımcı fiil öne geçer</b><span class="ex">be: Are you…? · do: Do you…? · can: Can you…?</span></span></label></li>
+<li><label><input type="checkbox" id="t14_4"><span><b>Kısa cevaplar</b><span class="ex">Yes, I do. / No, she isn&#x27;t. / Yes, I can. (sadece &#x27;Yes&#x27; yetmez)</span></span></label></li>
+</ul></div>
+<div class="group topic" id="k15"><div class="thead"><h3><span class="tn">15</span> Cümle bağlama</h3><span class="prog tp"></span></div><ul class="check">
+<li><label><input type="checkbox" id="t15_1"><span><b>Emir kipi</b><span class="ex">Sit down. Don&#x27;t talk. Please close the door.</span></span></label></li>
+<li><label><input type="checkbox" id="t15_2"><span><b>Bağlaçlar</b><span class="ex">and, but, or, because, so — I was tired, so I went home.</span></span></label></li>
+<li><label><input type="checkbox" id="t15_3"><span><b>Sıralama</b><span class="ex">first, then, after that, finally — anlatım akışının iskeleti</span></span></label></li>
+</ul></div>
+
+    <div class="group" id="d-a2"><h3>A2 sınıfında seni bekleyenler</h3>
+      <ul class="check">
+        <li><label><input type="checkbox" id="a1"><span><b>Past Continuous</b><span class="ex">I was cooking when you called.</span></span></label></li>
+        <li><label><input type="checkbox" id="a2x"><span><b>Present Perfect</b><span class="ex">Have you ever…? I've just… for / since</span></span></label></li>
+        <li><label><input type="checkbox" id="a3"><span><b>will ve going to</b><span class="ex">I think it will rain. I'm going to study.</span></span></label></li>
+        <li><label><input type="checkbox" id="a4"><span><b>Karşılaştırma ve üstünlük</b><span class="ex">bigger, more expensive · the biggest</span></span></label></li>
+        <li><label><input type="checkbox" id="a5"><span><b>should, must, have to, might</b><span class="ex">You should rest. I have to work.</span></span></label></li>
+        <li><label><input type="checkbox" id="a6"><span><b>Zarflar</b><span class="ex">quick→quickly, careful→carefully</span></span></label></li>
+        <li><label><input type="checkbox" id="a7"><span><b>First Conditional</b><span class="ex">If it rains, I'll stay at home.</span></span></label></li>
+      </ul>
+    </div>
+    <div class="next"><a href="#kelime" data-cat="kelime">Sonraki: Kelime alanları →</a></div>
+  </section>
+
+  <!-- ===== 5 KELİME ===== -->
+  <section class="cat" id="kelime">
+    <div class="cathead"><p class="tag">Kategori 5</p><h2>Kelime alanları</h2>
+      <p>Her alandan 15–20 kelimeyi cümle içinde kullanabilmelisin. Yeni kelimeyi vurgusuyla ve bir örnek cümleyle yaz.</p>
+      <div class="sub"><a href="#k-alan">14 alan</a><a href="#k-ukus">UK ve US</a></div></div>
+    <div class="vocab" id="k-alan">
+      <div class="group"><h3>Sayılar ve zaman</h3><p>0–1000, sıra sayıları, günler, aylar, mevsimler, tarih ve saat</p></div>
+      <div class="group"><h3>Kişi ve aile</h3><p>anne-baba, kardeş, kuzen, eş; yaş, görünüş (tall, short hair), karakter (friendly, quiet)</p></div>
+      <div class="group"><h3>Ülke ve uyruk</h3><p>Turkey–Turkish, England–English, Germany–German, Spain–Spanish, Japan–Japanese</p></div>
+      <div class="group"><h3>Meslekler</h3><p>teacher, doctor, nurse, engineer, driver, waiter, student, shop assistant</p></div>
+      <div class="group"><h3>Günlük rutin</h3><p>get up, have breakfast, go to work, have a shower, cook, go to bed</p></div>
+      <div class="group"><h3>Ev</h3><p>kitchen, bedroom, sofa, fridge, wardrobe; ev işleri</p></div>
+      <div class="group"><h3>Şehir ve yön</h3><p>bank, post office, hospital, pharmacy, station; turn left, go straight on</p></div>
+      <div class="group"><h3>Ulaşım</h3><p>bus, train, ferry, plane, taxi; by bus, on foot</p></div>
+      <div class="group"><h3>Yiyecek ve içecek</h3><p>meyve, sebze, et, içecekler, öğünler; menü, sipariş, hesap</p></div>
+      <div class="group"><h3>Alışveriş ve kıyafet</h3><p>size, price, cheap, expensive; shirt, jacket, shoes; renkler</p></div>
+      <div class="group"><h3>Beden ve sağlık</h3><p>head, arm, stomach; headache, cold, fever; I feel sick</p></div>
+      <div class="group"><h3>Hava durumu</h3><p>sunny, rainy, cloudy, windy, hot, cold; It's raining.</p></div>
+      <div class="group"><h3>Boş zaman</h3><p>play football, watch TV, read, swim, go shopping, listen to music</p></div>
+      <div class="group"><h3>Duygular</h3><p>happy, sad, tired, hungry, bored, angry, excited, nervous</p></div>
+    </div>
+    <div class="group" id="k-ukus"><h3>İngiliz ve Amerikan İngilizcesi</h3>
+      <div class="tbl"><table>
+        <tr><th>UK</th><th>US</th><th>Türkçe</th></tr>
+        <tr><td>flat</td><td>apartment</td><td>daire</td></tr>
+        <tr><td>holiday</td><td>vacation</td><td>tatil</td></tr>
+        <tr><td>lift</td><td>elevator</td><td>asansör</td></tr>
+        <tr><td>mobile (phone)</td><td>cell phone</td><td>cep telefonu</td></tr>
+        <tr><td>autumn</td><td>fall</td><td>sonbahar</td></tr>
+        <tr><td>have got</td><td>have</td><td>sahip olmak</td></tr>
+        <tr><td>colour, centre</td><td>color, center</td><td>yazım farkı</td></tr>
+      </table></div>
+      <p class="small">İkisi de doğru. Kitabın hangisini kullandığına bak ve ona sadık kal.</p>
+    </div>
+    <div class="next"><a href="#kultur" data-cat="kultur">Sonraki: Konuşma kültürü →</a></div>
+  </section>
+
+  <!-- ===== 6 KÜLTÜR ===== -->
+  <section class="cat" id="kultur">
+    <div class="cathead"><p class="tag">Kategori 6</p><h2>Konuşma kültürü</h2>
+      <p>Dilbilgisi doğru olsa bile kaba ya da tuhaf duyulmamak için. İngilizcede kibarlık kelime seçimiyle kurulur.</p>
+      <div class="sub"><a href="#c-kibar">Kibarlık</a><a href="#c-small">Small talk</a><a href="#c-akis">Sohbet akışı</a><a href="#c-hitap">Hitap</a></div></div>
+
+    <div class="group" id="c-kibar"><h3>Kibarlık: doğrudan değil, yumuşatarak</h3>
+      <div class="ph"><span class="en"><span class="wrong">Give me water.</span> → Could I have some water, please?</span><span class="tr">emir kipi istekte sert duyulur</span></div>
+      <div class="ph"><span class="en"><span class="wrong">I want a coffee.</span> → I'd like a coffee, please.</span><span class="tr">want yerine would like</span></div>
+      <div class="ph"><span class="en"><span class="wrong">Repeat!</span> → Sorry, could you say that again?</span><span class="tr">başa "sorry" yumuşatır</span></div>
+      <div class="ph"><span class="en"><span class="wrong">No.</span> → I'm afraid I can't. / Maybe another time.</span><span class="tr">hayır demenin kibar yolu</span></div>
+      <div class="ph"><span class="en"><span class="wrong">You are wrong.</span> → I'm not sure about that.</span><span class="tr">karşı çıkarken yumuşat</span></div>
+      <p class="small">"Please", "thank you" ve "sorry" Türkçeden çok daha sık: kasiyere, şoföre, garsona her seferinde. Yol isterken "Excuse me" denir.</p>
+    </div>
+
+    <div class="group" id="c-small"><h3>Selam ve küçük sohbet (small talk)</h3>
+      <div class="ph"><span class="en">How are you? → Fine, thanks. And you?</span><span class="tr">selamlaşmadır; uzun cevap beklenmez</span></div>
+      <div class="ph"><span class="en">Lovely weather today, isn't it?</span><span class="tr">hava durumu en güvenli açılış</span></div>
+      <div class="ph"><span class="en">Did you have a good weekend?</span><span class="tr">hafta sonu, tatil, hobiler, iş: güvenli konular</span></div>
+      <div class="ph"><span class="en">Your English is very good! → Oh, thank you!</span><span class="tr">iltifatı reddetme, teşekkür et</span></div>
+      <p class="small">Yeni tanıştığın birine sorulmayanlar: maaş, yaş, kilo, evlilik ve çocuk planları, din, siyaset.</p>
+    </div>
+
+    <div class="group" id="c-akis"><h3>Sohbeti canlı tutmak (akışın sırrı)</h3>
+      <div class="ph"><span class="en">Really? / Oh, nice! / I see. / That's interesting.</span><span class="tr">dinlediğini göster; sessizlik ilgisizlik gibi algılanır</span></div>
+      <div class="ph"><span class="en">What about you? / And you?</span><span class="tr">soruyu geri at</span></div>
+      <div class="ph"><span class="en">Sorry to interrupt, but…</span><span class="tr">söz kesmen gerekirse</span></div>
+      <div class="ph"><span class="en">Well… / Actually… / You know…</span><span class="tr">düşünürken "ııı" yerine</span></div>
+      <p class="tip">Formül: <b>cevap + bir bilgi + bir soru.</b> "Do you like sport?" → "Yes, I do. I play tennis on Sundays. What about you?"</p>
+    </div>
+
+    <div class="group" id="c-hitap"><h3>Sınıf ve hitap</h3>
+      <div class="ph"><span class="en">Excuse me, Sarah?</span><span class="tr">öğretmene isimle hitap; "Teacher!" İngiltere'de çocuksu duyulur</span></div>
+      <div class="ph"><span class="en">Mr / Ms + soyad</span><span class="tr">resmi ortamda: Ms Brown, Mr Brown</span></div>
+      <div class="ph"><span class="en">Cheers!</span><span class="tr">İngiltere'de günlük "teşekkürler"</span></div>
+      <p class="small">Sırada beklemek (queue) çok önemli, araya girmek ciddi kabalık. Konuşurken göz teması güven verir. İngiliz mizahında "not bad" genelde "gayet iyi" demektir.</p>
+    </div>
+  </section>
+
+  </main>
+  </div>
+  <button type="button" class="totop" id="totop" hidden aria-label="Başa dön">↑</button>
+  <footer>İşaretlerin ve son açtığın kategori yalnızca bu cihazda saklanır.</footer>
+</div>
+
+<script>
+(function(){
+  const cats=['temeller','telaffuz','sinif','dilbilgisi','kelime','kultur'];
+  const secs=cats.map(c=>document.getElementById(c));
+  const store={get(k){try{return localStorage.getItem(k);}catch(e){return null;}},set(k,v){try{localStorage.setItem(k,v);}catch(e){}}};
+  const catOf=id=>{if(cats.includes(id))return id;const el=id&&document.getElementById(id);const s=el&&el.closest('.cat');return s?s.id:null;};
+
+  /* Yan içindekiler (masaüstü) */
+  const side=document.getElementById('side');
+  secs.forEach((s,i)=>{
+    const a=document.createElement('a');a.href='#'+s.id;a.className='c';a.dataset.cat=s.id;
+    a.innerHTML='<span class="n">'+(i+1)+'</span>'+s.querySelector('h2').textContent;side.appendChild(a);
+    const box=document.createElement('div');box.className='subs';box.dataset.for=s.id;
+    s.querySelectorAll('.cathead .sub a').forEach(x=>{const b=document.createElement('a');b.href=x.getAttribute('href');b.textContent=x.textContent;box.appendChild(b);});
+    side.appendChild(box);
+  });
+  const hint=document.createElement('p');hint.className='hint';hint.textContent='Kısayol: / tuşu aramaya gider.';side.appendChild(hint);
+
+  let current=null;
+  function show(cat,target,scroll){
+    current=cat;
+    secs.forEach(s=>s.hidden=s.id!==cat);
+    document.querySelectorAll('[data-cat]').forEach(a=>a.setAttribute('aria-current',a.dataset.cat===cat?'true':'false'));
+    side.querySelectorAll('.subs').forEach(b=>b.hidden=b.dataset.for!==cat);
+    store.set('a1l-cat',cat);
+    if(scroll){const t=document.getElementById(target||cat);if(t)t.scrollIntoView({block:'start'});}
+    spy();
+  }
+  document.addEventListener('click',e=>{
+    const a=e.target.closest('a[href^="#"]');if(!a)return;
+    const id=a.getAttribute('href').slice(1),cat=catOf(id);if(!cat)return;
+    e.preventDefault();
+    if(document.body.classList.contains('searching'))clearSearch();
+    show(cat,id,true);
+    try{history.replaceState(null,'','#'+id);}catch(err){}
+  });
+
+  /* Konum takibi: yan menüde bulunduğun alt başlık */
+  function spy(){
+    const box=side.querySelector('.subs[data-for="'+current+'"]');if(!box)return;
+    let on=null;
+    box.querySelectorAll('a').forEach(a=>{const t=document.getElementById(a.getAttribute('href').slice(1));if(t&&t.getBoundingClientRect().top<160)on=a;});
+    box.querySelectorAll('a').forEach(a=>a.classList.toggle('on',a===on));
+  }
+  const totop=document.getElementById('totop');
+  let tick=false;
+  addEventListener('scroll',()=>{if(tick)return;tick=true;requestAnimationFrame(()=>{tick=false;spy();totop.hidden=scrollY<600;});},{passive:true});
+  totop.addEventListener('click',()=>scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'}));
+
+  /* Arama */
+  const q=document.getElementById('q'),qc=document.getElementById('qclear'),qi=document.getElementById('qinfo');
+  const fold=t=>t.toLowerCase().replace(/[ıİ]/g,'i').replace(/ş/g,'s').replace(/ğ/g,'g').replace(/ü/g,'u').replace(/ö/g,'o').replace(/ç/g,'c').replace(/’/g,"'");
+  const itemSel='.ph, ul.check li, .tbl tr, .abc > div, .pairs > span, .vocab > .group';
+  const items=[...document.querySelectorAll(itemSel)].filter(el=>!(el.matches('.tbl tr')&&!el.querySelector('td')));
+  const groups=[...document.querySelectorAll('.cat .group')];
+  items.forEach(el=>el._t=fold(el.textContent));
+  function clearSearch(){q.value='';run();}
+  function run(){
+    const v=fold(q.value.trim());
+    qc.hidden=!v;
+    if(v.length<2){
+      document.body.classList.remove('searching');qi.hidden=true;
+      items.forEach(el=>el.hidden=false);groups.forEach(g=>g.hidden=false);
+      show(current||'temeller',null,false);return;
+    }
+    document.body.classList.add('searching');
+    let n=0;
+    items.forEach(el=>{const ok=el._t.includes(v);el.hidden=!ok;if(ok)n++;});
+    groups.forEach(g=>{
+      if(g.closest('.vocab')){return;}
+      const vis=[...g.querySelectorAll(itemSel)].some(el=>items.includes(el)&&!el.hidden);
+      const head=g.querySelector('h3');const hm=head&&fold(head.textContent).includes(v);
+      if(hm&&!vis){g.querySelectorAll(itemSel).forEach(el=>el.hidden=false);}
+      g.hidden=!(vis||hm);
+    });
+    secs.forEach(s=>s.hidden=![...s.querySelectorAll('.group')].some(g=>!g.hidden));
+    qi.hidden=false;qi.textContent=n?n+' sonuç · tüm kategorilerde':'Sonuç yok. Başka bir kelime dene (Türkçe ya da İngilizce).';
+  }
+  q.addEventListener('input',run);
+  qc.addEventListener('click',()=>{clearSearch();q.focus();});
+  q.addEventListener('keydown',e=>{if(e.key==='Escape'){clearSearch();}});
+  document.addEventListener('keydown',e=>{if(e.key==='/'&&document.activeElement!==q&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();q.focus();}});
+
+  /* Yıldız filtresi */
+  const sb=document.getElementById('starBtn');
+  const setStar=on=>{document.body.classList.toggle('only-star',on);sb.setAttribute('aria-pressed',on);store.set('a1l-star',on?'1':'0');};
+  sb.addEventListener('click',()=>setStar(sb.getAttribute('aria-pressed')!=='true'));
+  setStar(store.get('a1l-star')==='1');
+
+  /* İlk açılış */
+  const h=location.hash.slice(1);
+  let start=catOf(h)||store.get('a1l-cat');
+  if(!cats.includes(start))start='temeller';
+  show(start,h&&!cats.includes(h)?h:null,!!(h&&!cats.includes(h)));
+
+  /* İşaretler */
+  const boxes=[...document.querySelectorAll('ul.check input')];
+  const g=boxes.filter(b=>/^t\d+_\d+$/.test(b.id)),gp=document.getElementById('gprog');
+  const topics=[...document.querySelectorAll('.topic')];
+  const upd=()=>{gp.textContent='· '+g.filter(b=>b.checked).length+' / '+g.length;
+    topics.forEach(t=>{const bs=[...t.querySelectorAll('input')],n=bs.filter(b=>b.checked).length;t.querySelector('.tp').textContent=n+' / '+bs.length;t.classList.toggle('done',n===bs.length);});};
+  boxes.forEach(b=>{b.checked=store.get('a1l-'+b.id)==='1';b.addEventListener('change',()=>{store.set('a1l-'+b.id,b.checked?'1':'0');upd();});});
+  upd();
+})();
+</script>
+
+</body></html>
